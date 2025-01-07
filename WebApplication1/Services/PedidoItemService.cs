@@ -21,7 +21,8 @@ namespace WebApplication1.Services
         }
         public ICollection<PedidoItem> GetPedidosItem()
         {
-            throw new NotImplementedException();
+            var pedidosItem = _dbContext.PedidoItem.ToList();
+            return pedidosItem;
         }
 
         public PedidoItem DeletePedidoItem(string nome)

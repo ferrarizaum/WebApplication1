@@ -24,7 +24,8 @@ namespace WebApplication1.Services
 
         public ICollection<User> GetUsers()
         {
-            throw new NotImplementedException();
+            var users = _dbContext.Users.ToList();
+            return users;
         }
 
         public User PostUser(User user)

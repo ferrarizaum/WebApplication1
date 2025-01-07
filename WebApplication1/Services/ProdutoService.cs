@@ -26,7 +26,8 @@ namespace WebApplication1.Services
 
         public ICollection<Produto> GetProdutos()
         {
-            throw new NotImplementedException();
+            var produtos = _dbContext.Produtos.ToList();
+            return produtos;
         }
 
         public Produto PostProduto(Produto produto)

@@ -28,7 +28,8 @@ namespace WebApplication1.Services
 
         public ICollection<Categoria> GetCategorias()
         {
-            throw new NotImplementedException();
+            var categorias = _dbContext.Categorias.ToList();
+            return categorias;
         }
 
         public Categoria PostCategoria(Categoria categoria)

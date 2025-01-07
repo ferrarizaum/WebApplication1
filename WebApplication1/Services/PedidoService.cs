@@ -27,7 +27,8 @@ namespace WebApplication1.Services
 
         public ICollection<Pedido> GetPedidos()
         {
-            throw new NotImplementedException();
+            var pedidos = _dbContext.Pedidos.ToList();
+            return pedidos;
         }
 
         public Pedido PostPedido(Pedido pedido)
