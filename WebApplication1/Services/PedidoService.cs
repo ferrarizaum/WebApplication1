@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WebApplication1.Context;
 using static WebApplication1.Services.PedidoService;
 
@@ -8,40 +9,107 @@ namespace WebApplication1.Services
     {
         Task<ICollection<Pedido>> GetPedidos();
         Task<Pedido> PostPedido(Pedido pedido);
-        Pedido UpdatePedido(Pedido pedido, string novoNome);
-        Pedido DeletePedido(string nome);
+        Task<Pedido> UpdatePedido(int id, int novoId);
+        Task<Pedido> DeletePedido(int id);
         Task<List<PedidoWithQuantidade>> ListWithAuth();
     }
 
     public class PedidoService : IPedidoService
     {
         private readonly AppDbContext _dbContext;
+        private readonly ILogger<UserService> _logger;
 
-        public PedidoService(AppDbContext dbContext)
+        public PedidoService(AppDbContext dbContext, ILogger<UserService> logger)
         {
             _dbContext = dbContext;
+            _logger = logger;
         }
+
+        private async Task<Pedido> FindPedidoById(int id)
+        {
+            return await _dbContext.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+        }
+
         public async Task<ICollection<Pedido>> GetPedidos()
         {
-            var pedidos = await _dbContext.Pedidos.ToListAsync();
-            return pedidos;
+            return await _dbContext.Pedidos.ToListAsync();
         }
+
         public async Task<Pedido> PostPedido(Pedido pedido)
         {
-            _dbContext.Pedidos.Add(pedido);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                if (await _dbContext.Pedidos.AnyAsync(p => p.Id == pedido.Id))
+                {
+                    _logger.LogWarning("Pedido with id {id} already exists.", pedido.Id);
+                    return null;
+                }
 
-            return pedido;
+                _dbContext.Pedidos.Add(pedido);
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Pedido {id} created successfully.", pedido.Id);
+
+                return pedido;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while creating pedido {id}", pedido.Id);
+                throw;
+            }
         }
 
-        public Pedido DeletePedido(string nome)
+        public async Task<Pedido> DeletePedido(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var pedido = await FindPedidoById(id);
+
+                if (pedido == null)
+                {
+                    _logger.LogWarning("Pedido with id {id} not found.", id);
+                    return null;
+                }
+
+                _dbContext.Pedidos.Remove(pedido);
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Pedido {id} deleted successfully.", id);
+
+                return pedido;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting pedido {id}", id);
+                throw;
+            }
         }
 
-        public Pedido UpdatePedido(Pedido pedido, string novoNome)
+        public async Task<Pedido> UpdatePedido(int id, int novoId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var pedido = await FindPedidoById(id);
+
+                if (pedido == null)
+                {
+                    _logger.LogWarning("Pedido with id {id} not found.", id);
+                    return null;
+                }
+
+                pedido.UsuarioId = novoId;
+
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Pedido {id} updated successfully.", id);
+
+                return pedido;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating pedido{id}", id);
+                throw;
+            }
         }
 
         // 9

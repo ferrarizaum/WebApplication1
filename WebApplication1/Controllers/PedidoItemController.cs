@@ -18,27 +18,67 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var pedidos = await _pedidoItemService.GetPedidosItem();
-            return Ok(pedidos);
+            var pedidosItem = await _pedidoItemService.GetPedidosItem();
+
+            if (pedidosItem == null || pedidosItem.Count == 0)
+            {
+                return NoContent();
+            }
+
+            return Ok(pedidosItem);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] PedidoItem pedidoItem)
         {
-            var newPedido = await _pedidoItemService.PostPedidoItem(pedidoItem);
-            return Ok(newPedido);
+            if (pedidoItem == null)
+            {
+                return BadRequest("Pedido Item data cannot be null.");
+            }
+
+            var newPedidoItem = await _pedidoItemService.PostPedidoItem(pedidoItem);
+
+            if (newPedidoItem == null)
+            {
+                return Conflict("Pedido Item with the same id already exists.");
+            }
+
+            return CreatedAtAction(nameof(Get), new { id = newPedidoItem.Id }, newPedidoItem);
         }
 
         [HttpPut]
-        public IActionResult Put(string novoNome)
+        public async Task<IActionResult> Put([FromQuery] int id, [FromQuery] int qtd)
         {
-            return Ok();
+            if (id == 0 || id < 0)
+            {
+                return BadRequest("Invalid Id.");
+            }
+
+            var updatedPedidoItem = await _pedidoItemService.UpdatePedidoItem(id, qtd);
+
+            if (updatedPedidoItem == null)
+            {
+                return NotFound("Pedido Item not found.");
+            }
+
+            return Ok(updatedPedidoItem);
         }
 
         [HttpDelete]
-        public IActionResult Delete(string nome)
+        public async Task<IActionResult> Delete([FromQuery] int id)
         {
-            var removedPedidoItem = _pedidoItemService.DeletePedidoItem(nome);
+            if (id == 0 || id < 0)
+            {
+                return BadRequest("Invalid Id.");
+            }
+
+            var removedPedidoItem = await _pedidoItemService.DeletePedidoItem(id);
+
+            if (removedPedidoItem == null)
+            {
+                return NotFound("Pedido Item not found.");
+            }
+
             return Ok(removedPedidoItem);
         }
     }

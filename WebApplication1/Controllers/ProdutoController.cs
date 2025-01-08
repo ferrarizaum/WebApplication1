@@ -18,26 +18,66 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Get()
         {
             var produtos = await _produtoService.GetProdutos();
+
+            if (produtos == null || produtos.Count == 0)
+            {
+                return NoContent();
+            }
+
             return Ok(produtos);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Produto produto)
         {
+            if (produto == null)
+            {
+                return BadRequest("Produto data cannot be null.");
+            }
+
             var newProduto = await _produtoService.PostProduto(produto);
-            return Ok(newProduto);
+
+            if (newProduto == null)
+            {
+                return Conflict("Produto with the same nome already exists.");
+            }
+
+            return CreatedAtAction(nameof(Get), new { nome = newProduto.Nome }, newProduto);
         }
 
         [HttpPut]
-        public IActionResult Put(string novoNome)
+        public async Task<IActionResult> Put([FromQuery] string nome, [FromQuery] string novoNome)
         {
-            return Ok();
+            if (string.IsNullOrEmpty(nome) || string.IsNullOrEmpty(novoNome))
+            {
+                return BadRequest("nome and novoNome cannot be null or empty.");
+            }
+
+            var updatedProduto = await _produtoService.UpdateProduto(nome, novoNome);
+
+            if (updatedProduto == null)
+            {
+                return NotFound("Produto not found.");
+            }
+
+            return Ok(updatedProduto);
         }
 
         [HttpDelete]
-        public IActionResult Delete(string nome)
+        public async Task<IActionResult> Delete([FromQuery] string nome)
         {
-            var removedProduto = _produtoService.DeleteProduto(nome);
+            if (string.IsNullOrEmpty(nome))
+            {
+                return BadRequest("Nome cannot be null or empty.");
+            }
+
+            var removedProduto = await _produtoService.DeleteProduto(nome);
+
+            if (removedProduto == null)
+            {
+                return NotFound("Produto not found.");
+            }
+
             return Ok(removedProduto);
         }
 

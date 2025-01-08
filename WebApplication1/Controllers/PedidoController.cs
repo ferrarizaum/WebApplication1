@@ -19,26 +19,66 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Get()
         {
             var pedidos = await _pedidoService.GetPedidos();
+
+            if (pedidos == null || pedidos.Count == 0)
+            {
+                return NoContent();
+            }
+
             return Ok(pedidos);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Pedido pedido)
         {
+            if (pedido == null)
+            {
+                return BadRequest("Pedido data cannot be null.");
+            }
+
             var newPedido = await _pedidoService.PostPedido(pedido);
-            return Ok(newPedido);
+
+            if (newPedido == null)
+            {
+                return Conflict("Pedido with the same id already exists.");
+            }
+
+            return CreatedAtAction(nameof(Get), new { id = newPedido.Id }, newPedido);
         }
 
         [HttpPut]
-        public IActionResult Put(string novoNome)
+        public async Task<IActionResult> Put([FromQuery] int id, [FromQuery] int novoId)
         {
-            return Ok();
+            if (id == 0 || id < 0)
+            {
+                return BadRequest("Invalid Id.");
+            }
+
+            var updatedPedido = await _pedidoService.UpdatePedido(id, novoId);
+
+            if (updatedPedido == null)
+            {
+                return NotFound("Pedido not found.");
+            }
+
+            return Ok(updatedPedido);
         }
 
         [HttpDelete]
-        public IActionResult Delete(string nome)
+        public async Task<IActionResult> Delete([FromQuery] int id)
         {
-            var removedPedido = _pedidoService.DeletePedido(nome);
+            if (id == 0 || id < 0)
+            {
+                return BadRequest("Invalid Id.");
+            }
+
+            var removedPedido = await _pedidoService.DeletePedido(id);
+
+            if (removedPedido == null)
+            {
+                return NotFound("Pedido not found.");
+            }
+
             return Ok(removedPedido);
         }
 

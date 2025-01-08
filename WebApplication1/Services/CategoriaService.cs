@@ -7,8 +7,8 @@ namespace WebApplication1.Services
     {
         Task<ICollection<Categoria>> GetCategorias();
         Task<Categoria> PostCategoria(Categoria categoria);
-        Categoria UpdateCategoria(Categoria categoria, string novoNome);
-        Categoria DeleteCategoria(string nome);
+        Task<Categoria> UpdateCategoria(string nome, string novoNome);
+        Task<Categoria> DeleteCategoria(string nome);
         Task<List<Categoria>> ListByProduto();
 
         Task<List<Categoria>> ListByCategoriaUrl(string categoriaUrl);
@@ -17,32 +17,98 @@ namespace WebApplication1.Services
     public class CategoriaService : ICategoriaService
     {
         private readonly AppDbContext _dbContext;
+        private readonly ILogger<UserService> _logger;
 
-        public CategoriaService(AppDbContext dbContext)
+        public CategoriaService(AppDbContext dbContext, ILogger<UserService> logger)
         {
             _dbContext = dbContext;
+            _logger = logger;
         }
+
+        private async Task<Categoria> FindCategoriaByNome(string nome)
+        {
+            return await _dbContext.Categorias.FirstOrDefaultAsync(c => c.Nome == nome);
+        }
+
         public async Task<ICollection<Categoria>> GetCategorias()
         {
-            var categorias = await _dbContext.Categorias.ToListAsync();
-            return categorias;
+            return await _dbContext.Categorias.ToListAsync();
         }
         public async Task<Categoria> PostCategoria(Categoria categoria)
         {
-            _dbContext.Categorias.Add(categoria);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                if (await _dbContext.Categorias.AnyAsync(c => c.Nome == categoria.Nome))
+                {
+                    _logger.LogWarning("Categoria with nome {nome} already exists.", categoria.Nome);
+                    return null;
+                }
 
-            return categoria;
+                _dbContext.Categorias.Add(categoria);
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Categoria {nome} created successfully.", categoria.Nome);
+
+                return categoria;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while creating categoria {nome}", categoria.Nome);
+                throw;
+            }
         }
 
-        public Categoria DeleteCategoria(string nome)
+        public async Task<Categoria> DeleteCategoria(string nome)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var categoria = await FindCategoriaByNome(nome);
+
+                if (categoria == null)
+                {
+                    _logger.LogWarning("Categoria with nome {nome} not found.", nome);
+                    return null;
+                }
+
+                _dbContext.Categorias.Remove(categoria);
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Categoria {nome} deleted successfully.", nome);
+
+                return categoria;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting categoria {nome}", nome);
+                throw;
+            }
         }
 
-        public Categoria UpdateCategoria(Categoria categoria, string novoNome)
+        public async Task<Categoria> UpdateCategoria(string nome, string novoNome)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var categoria = await FindCategoriaByNome(nome);
+
+                if (categoria == null)
+                {
+                    _logger.LogWarning("Categoria with nome {nome} not found.", nome);
+                    return null;
+                }
+
+                categoria.Nome = novoNome;
+
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Categoria {nome} updated successfully.", nome);
+
+                return categoria;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating categoria {nome}", nome);
+                throw;
+            }
         }
 
         // 4

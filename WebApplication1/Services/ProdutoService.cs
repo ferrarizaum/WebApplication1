@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WebApplication1.Context;
 
 namespace WebApplication1.Services
@@ -7,40 +8,107 @@ namespace WebApplication1.Services
     {
         Task<ICollection<Produto>> GetProdutos();
         Task<Produto> PostProduto(Produto produto);
-        Produto UpdateProduto(Produto produto, string novoNome);
-        Produto DeleteProduto(string nome);
+        Task<Produto> UpdateProduto(string nome, string novoNome);
+        Task<Produto> DeleteProduto(string nome);
         Task<List<Produto>> ListByProdutoUrl(string produtoUrl);
     }
 
     public class ProdutoService : IProdutoService
     {
         private readonly AppDbContext _dbContext;
+        private readonly ILogger<UserService> _logger;
 
-        public ProdutoService(AppDbContext dbContext)
+        public ProdutoService(AppDbContext dbContext, ILogger<UserService> logger)
         {
             _dbContext = dbContext;
+            _logger = logger;
         }
+
+        private async Task<Produto> FindProdutoByNome(string nome)
+        {
+            return await _dbContext.Produtos.FirstOrDefaultAsync(p => p.Nome == nome);
+        }
+
         public async Task<ICollection<Produto>> GetProdutos()
         {
-            var produtos = await _dbContext.Produtos.ToListAsync();
-            return produtos;
+            return await _dbContext.Produtos.ToListAsync();
         }
+
         public async Task<Produto> PostProduto(Produto produto)
         {
-            _dbContext.Produtos.Add(produto);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                if (await _dbContext.Produtos.AnyAsync(p => p.Nome == produto.Nome))
+                {
+                    _logger.LogWarning("Produto with nome {nome} already exists.", produto.Nome);
+                    return null;
+                }
 
-            return produto;
+                _dbContext.Produtos.Add(produto);
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Produto {Nome} created successfully.", produto.Nome);
+
+                return produto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while creating produto {Nome}", produto.Nome);
+                throw;
+            }
         }
 
-        public Produto DeleteProduto(string nome)
+        public async Task<Produto> DeleteProduto(string nome)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var produto = await FindProdutoByNome(nome);
+
+                if (produto == null)
+                {
+                    _logger.LogWarning("Produto with nome {nome} not found.", nome);
+                    return null;
+                }
+
+                _dbContext.Produtos.Remove(produto);
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Produto {nome} deleted successfully.", nome);
+
+                return produto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting produto {nome}", nome);
+                throw;
+            }
         }
 
-        public Produto UpdateProduto(Produto produto, string novoNome)
+        public async Task<Produto> UpdateProduto(string nome, string novoNome)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var produto = await FindProdutoByNome(nome);
+
+                if (produto == null)
+                {
+                    _logger.LogWarning("Produto with nome {nome} not found.", nome);
+                    return null;
+                }
+
+                produto.Nome = novoNome;
+
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Produto {nome} updated successfully.", nome);
+
+                return produto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating produto {nome}", nome);
+                throw;
+            }
         }
 
         // 6

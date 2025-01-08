@@ -18,26 +18,66 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Get()
         {
             var categorias = await _categoriaService.GetCategorias();
+
+            if (categorias == null || categorias.Count == 0)
+            {
+                return NoContent();
+            }
+
             return Ok(categorias);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Categoria categoria)
         {
+            if (categoria == null)
+            {
+                return BadRequest("Categoria data cannot be null.");
+            }
+
             var newCategoria = await _categoriaService.PostCategoria(categoria);
-            return Ok(newCategoria);
+
+            if (newCategoria == null)
+            {
+                return Conflict("Categoria with the same id already exists.");
+            }
+
+            return CreatedAtAction(nameof(Get), new { nome = newCategoria.Nome }, newCategoria);
         }
 
         [HttpPut]
-        public IActionResult Put(string novoNome)
+        public async Task<IActionResult> Put([FromQuery] string nome, [FromQuery] string novoNome)
         {
-            return Ok();
+            if (string.IsNullOrEmpty(nome) || string.IsNullOrEmpty(novoNome))
+            {
+                return BadRequest("Invalid Nome.");
+            }
+
+            var updatedCategoria = await _categoriaService.UpdateCategoria(nome, novoNome);
+
+            if (updatedCategoria == null)
+            {
+                return NotFound("Caegoria not found.");
+            }
+
+            return Ok(updatedCategoria);
         }
 
         [HttpDelete]
-        public IActionResult Delete(string nome)
+        public async Task<IActionResult> Delete([FromQuery] string nome)
         {
-            var removedCategoria = _categoriaService.DeleteCategoria(nome);
+            if (string.IsNullOrEmpty(nome))
+            {
+                return BadRequest("Invalid Nome.");
+            }
+
+            var removedCategoria = await _categoriaService.DeleteCategoria(nome);
+
+            if (removedCategoria == null)
+            {
+                return NotFound("Categoria not found.");
+            }
+
             return Ok(removedCategoria);
         }
 
