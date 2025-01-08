@@ -17,14 +17,14 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var categorias = _categoriaService.GetCategorias();
+            var categorias = await _categoriaService.GetCategorias();
             return Ok(categorias);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] Categoria categoria)
+        public async Task<IActionResult> Post([FromBody] Categoria categoria)
         {
-            var newCategoria = _categoriaService.PostCategoria(categoria);
+            var newCategoria = await _categoriaService.PostCategoria(categoria);
             return Ok(newCategoria);
         }
 
@@ -43,17 +43,17 @@ namespace WebApplication1.Controllers
 
         [HttpGet]
         [Route("ListByProduto")]
-        public IActionResult ListByProduto()
+        public async Task<IActionResult> ListByProduto()
         {
-            var query = _categoriaService.ListByProduto();
+            var query = await _categoriaService.ListByProduto();
             return Ok(query);
         }
 
         [HttpGet]
         [Route("ListByCategoriaUrl")]
-        public IActionResult ListByCategoriaUrl(string categoriaUrl)
+        public async Task<IActionResult> ListByCategoriaUrl(string categoriaUrl)
         {
-            var query = _categoriaService.ListByCategoriaUrl(categoriaUrl);
+            var query = await _categoriaService.ListByCategoriaUrl(categoriaUrl);
             return Ok(query);
         }
     }

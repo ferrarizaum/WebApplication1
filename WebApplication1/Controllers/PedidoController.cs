@@ -18,14 +18,14 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var pedidos = _pedidoService.GetPedidos();
+            var pedidos = await _pedidoService.GetPedidos();
             return Ok(pedidos);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] Pedido pedido)
+        public async Task<IActionResult> Post([FromBody] Pedido pedido)
         {
-            var newPedido = _pedidoService.PostPedido(pedido);
+            var newPedido = await _pedidoService.PostPedido(pedido);
             return Ok(newPedido);
         }
 
@@ -45,10 +45,20 @@ namespace WebApplication1.Controllers
         [Authorize]
         [HttpGet]
         [Route("ListWithAuth")]
-        public IActionResult ListWithAuth()
+        public async Task<IActionResult> ListWithAuth()
         {
-            var query = _pedidoService.ListWithAuth();
+            var query = await _pedidoService.ListWithAuth();
             return Ok(query);
+        }
+
+        // 8
+        [Authorize]
+        [HttpPost]
+        [Route("PostWithAuth")]
+        public async Task<IActionResult> PostWithAuth([FromBody] Pedido pedido)
+        {
+            var newPedido = await _pedidoService.PostPedido(pedido);
+            return Ok(newPedido);
         }
     }
 }

@@ -18,14 +18,14 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var users = _userService.GetUsers();
+            var users = await _userService.GetUsers();
             return Ok(users);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] User user)
+        public async Task<IActionResult> Post([FromBody] User user)
         {
-            var newUser = _userService.PostUser(user);
+            var newUser = await _userService.PostUser(user);
             return Ok(newUser);
         }
 
@@ -44,9 +44,9 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [Route("verificaEmail")]
-        public IActionResult Verifica(string login, string userEmail, string guid)
+        public async Task<IActionResult> Verifica(string login, string userEmail, string guid)
         {
-            _userService.VerificaUser(login, userEmail, guid);
+            await _userService.VerificaUser(login, userEmail, guid);
             return Ok();
         }
 

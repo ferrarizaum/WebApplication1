@@ -1,16 +1,17 @@
-﻿using WebApplication1.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApplication1.Context;
 
 namespace WebApplication1.Services
 {
     public interface ICategoriaService
     {
-        ICollection<Categoria> GetCategorias();
-        Categoria PostCategoria(Categoria categoria);
+        Task<ICollection<Categoria>> GetCategorias();
+        Task<Categoria> PostCategoria(Categoria categoria);
         Categoria UpdateCategoria(Categoria categoria, string novoNome);
         Categoria DeleteCategoria(string nome);
-        List<Categoria> ListByProduto();
+        Task<List<Categoria>> ListByProduto();
 
-        List<Categoria> ListByCategoriaUrl(string categoriaUrl);
+        Task<List<Categoria>> ListByCategoriaUrl(string categoriaUrl);
     }
 
     public class CategoriaService : ICategoriaService
@@ -21,23 +22,22 @@ namespace WebApplication1.Services
         {
             _dbContext = dbContext;
         }
+        public async Task<ICollection<Categoria>> GetCategorias()
+        {
+            var categorias = await _dbContext.Categorias.ToListAsync();
+            return categorias;
+        }
+        public async Task<Categoria> PostCategoria(Categoria categoria)
+        {
+            _dbContext.Categorias.Add(categoria);
+            await _dbContext.SaveChangesAsync();
+
+            return categoria;
+        }
+
         public Categoria DeleteCategoria(string nome)
         {
             throw new NotImplementedException();
-        }
-
-        public ICollection<Categoria> GetCategorias()
-        {
-            var categorias = _dbContext.Categorias.ToList();
-            return categorias;
-        }
-
-        public Categoria PostCategoria(Categoria categoria)
-        {
-            _dbContext.Categorias.Add(categoria);
-            _dbContext.SaveChanges();
-
-            return categoria;
         }
 
         public Categoria UpdateCategoria(Categoria categoria, string novoNome)
@@ -45,20 +45,22 @@ namespace WebApplication1.Services
             throw new NotImplementedException();
         }
 
-        public List<Categoria> ListByProduto()
+        // 4
+        public async Task<List<Categoria>> ListByProduto()
         {
-            var products = _dbContext.Produtos.Where(p => p.Quantidade > 0 && p.Ativo == true).ToList();
+            var products = await _dbContext.Produtos.Where(p => p.Quantidade > 0 && p.Ativo == true).ToListAsync();
 
             var productIds = products.Select(p => p.Id).ToList();
 
-            var query = _dbContext.Categorias.Where(c => productIds.Contains(c.Id)).ToList();
+            var query = await _dbContext.Categorias.Where(c => productIds.Contains(c.Id)).ToListAsync();
 
             return query;
         }
 
-        public List<Categoria> ListByCategoriaUrl(string categoriaUrl)
+        // 5
+        public async Task<List<Categoria>> ListByCategoriaUrl(string categoriaUrl)
         {
-            var query = _dbContext.Categorias.Where(c => categoriaUrl.Contains(c.Url)).ToList();
+            var query = await _dbContext.Categorias.Where(c => categoriaUrl.Contains(c.Url)).ToListAsync();
 
             return query;
         }

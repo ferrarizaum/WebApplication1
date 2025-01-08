@@ -1,15 +1,16 @@
-﻿using WebApplication1.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApplication1.Context;
 using static WebApplication1.Services.PedidoService;
 
 namespace WebApplication1.Services
 {
     public interface IPedidoService
     {
-        ICollection<Pedido> GetPedidos();
-        Pedido PostPedido(Pedido pedido);
+        Task<ICollection<Pedido>> GetPedidos();
+        Task<Pedido> PostPedido(Pedido pedido);
         Pedido UpdatePedido(Pedido pedido, string novoNome);
         Pedido DeletePedido(string nome);
-        List<PedidoWithQuantidade> ListWithAuth();
+        Task<List<PedidoWithQuantidade>> ListWithAuth();
     }
 
     public class PedidoService : IPedidoService
@@ -20,23 +21,22 @@ namespace WebApplication1.Services
         {
             _dbContext = dbContext;
         }
+        public async Task<ICollection<Pedido>> GetPedidos()
+        {
+            var pedidos = await _dbContext.Pedidos.ToListAsync();
+            return pedidos;
+        }
+        public async Task<Pedido> PostPedido(Pedido pedido)
+        {
+            _dbContext.Pedidos.Add(pedido);
+            await _dbContext.SaveChangesAsync();
+
+            return pedido;
+        }
+
         public Pedido DeletePedido(string nome)
         {
             throw new NotImplementedException();
-        }
-
-        public ICollection<Pedido> GetPedidos()
-        {
-            var pedidos = _dbContext.Pedidos.ToList();
-            return pedidos;
-        }
-
-        public Pedido PostPedido(Pedido pedido)
-        {
-            _dbContext.Pedidos.Add(pedido);
-            _dbContext.SaveChanges();
-
-            return pedido;
         }
 
         public Pedido UpdatePedido(Pedido pedido, string novoNome)
@@ -44,7 +44,8 @@ namespace WebApplication1.Services
             throw new NotImplementedException();
         }
 
-        public List<PedidoWithQuantidade> ListWithAuth()
+        // 9
+        public async Task<List<PedidoWithQuantidade>> ListWithAuth()
         {
             var query = from pedido in _dbContext.Pedidos
                         join pedidoItem in _dbContext.PedidoItem
@@ -55,7 +56,7 @@ namespace WebApplication1.Services
                             Quantidade = pedidoItem.Quantidade
                         };
 
-            return query.ToList();
+            return await query.ToListAsync();
         }
 
         public class PedidoWithQuantidade

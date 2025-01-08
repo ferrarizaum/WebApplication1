@@ -1,16 +1,17 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebApplication1.Context;
 
 namespace WebApplication1.Services
 {
    public interface IUserService
     {
-        ICollection<User> GetUsers();
-        User PostUser(User user);
+        Task<ICollection<User>> GetUsers();
+        Task<User> PostUser(User user);
         User UpdateUser(User user, string novoNome);
         User DeleteUser(string nome);
-        void VerificaUser(string login, string userEmail, string guid);
+        Task<bool> VerificaUser(string login, string userEmail, string guid);
     }
 
     public class UserService : IUserService
@@ -22,26 +23,28 @@ namespace WebApplication1.Services
             _dbContext = dbContext;
         }
 
-        public ICollection<User> GetUsers()
+        public async Task<ICollection<User>> GetUsers()
         {
-            var users = _dbContext.Users.ToList();
+            var users = await _dbContext.Users.ToListAsync();
             return users;
         }
 
-        public User PostUser(User user)
+        public async Task<User> PostUser(User user)
         {
-            if (string.IsNullOrEmpty(user.ChaveVerificacao))
-            {
-                user.ChaveVerificacao = Guid.NewGuid().ToString();
-            }
-
+            // 2.A
             if (_dbContext.Users.Any(u => u.Login == user.Login))
             {
                 return null;
             }
 
+            if (string.IsNullOrEmpty(user.ChaveVerificacao))
+            {
+                // 2.C
+                user.ChaveVerificacao = Guid.NewGuid().ToString();
+            }
+
             _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return user;
         }
@@ -54,25 +57,28 @@ namespace WebApplication1.Services
         {
             throw new NotImplementedException();
         }
-
-        public void VerificaUser(string login, string userEmail, string guid)
+        // 3
+        public async Task<bool> VerificaUser(string login, string userEmail, string guid)
         {
-            var user = _dbContext.Users.FirstOrDefault(u => u.Login == login);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Login == login);
 
             if (user == null)
             {
-                return;
+                return false;
             }
 
             if(user.ChaveVerificacao == guid)
             {
+                // 3.A
                 user.IsVerificado = true;
             }
 
             user.Email = userEmail;
             user.ChaveVerificacao = guid;
             
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 }

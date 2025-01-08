@@ -1,12 +1,13 @@
 ﻿using static WebApplication1.Services.PedidoService;
 using WebApplication1.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApplication1.Services
 {
     public interface IPedidoItemService
     {
-        ICollection<PedidoItem> GetPedidosItem();
-        PedidoItem PostPedidoItem(PedidoItem pedidoItem);
+        Task<ICollection<PedidoItem>> GetPedidosItem();
+        Task<PedidoItem> PostPedidoItem(PedidoItem pedidoItem);
         PedidoItem UpdatePedidoItem(PedidoItem pedidoItem, string novoNome);
         PedidoItem DeletePedidoItem(string nome);
     }
@@ -19,24 +20,22 @@ namespace WebApplication1.Services
         {
             _dbContext = dbContext;
         }
-        public ICollection<PedidoItem> GetPedidosItem()
+        public async Task<ICollection<PedidoItem>> GetPedidosItem()
         {
-            var pedidosItem = _dbContext.PedidoItem.ToList();
+            var pedidosItem = await _dbContext.PedidoItem.ToListAsync();
             return pedidosItem;
+        }
+        public async Task<PedidoItem> PostPedidoItem(PedidoItem pedidoItem)
+        {
+            _dbContext.PedidoItem.Add(pedidoItem);
+            await _dbContext.SaveChangesAsync();
+
+            return pedidoItem;
         }
 
         public PedidoItem DeletePedidoItem(string nome)
         {
             throw new NotImplementedException();
-        }
-
-
-        public PedidoItem PostPedidoItem(PedidoItem pedidoItem)
-        {
-            _dbContext.PedidoItem.Add(pedidoItem);
-            _dbContext.SaveChanges();
-
-            return pedidoItem;
         }
 
         public PedidoItem UpdatePedidoItem(PedidoItem pedidoItem, string novoNome)

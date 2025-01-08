@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+// 1.A
 public class User
 {
     [Key]
@@ -34,8 +34,8 @@ public class User
     public bool IsVerificado { get; set; }
 
     [DefaultValue(true)]
-    public bool Ativo { get; set; } = true;
+    public bool Ativo { get; set; } = true;// 2.B
 
     [DefaultValue(false)]
-    public bool Excluido { get; set; } = false;
+    public bool Excluido { get; set; } = false;// 2.B
 }

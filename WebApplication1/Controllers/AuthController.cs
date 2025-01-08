@@ -14,11 +14,11 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post(string login)
+        public async Task<IActionResult> Post(string login)
         {
-            _authService.Login(login);
+            var token = await _authService.Login(login);
 
-            return Ok();
+            return Ok(token);
         }
     }
 }

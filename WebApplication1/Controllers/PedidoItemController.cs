@@ -18,14 +18,14 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var pedidos = _pedidoItemService.GetPedidosItem();
+            var pedidos = await _pedidoItemService.GetPedidosItem();
             return Ok(pedidos);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] PedidoItem pedidoItem)
+        public async Task<IActionResult> Post([FromBody] PedidoItem pedidoItem)
         {
-            var newPedido = _pedidoItemService.PostPedidoItem(pedidoItem);
+            var newPedido = await _pedidoItemService.PostPedidoItem(pedidoItem);
             return Ok(newPedido);
         }
 

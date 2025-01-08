@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -8,7 +9,7 @@ namespace WebApplication1.Services
 {
     public interface IAuthService
     {
-        void Login(string login);
+        Task<string> Login(string login);
         string Generate(User user);
     }
     public class AuthService : IAuthService
@@ -19,26 +20,28 @@ namespace WebApplication1.Services
         {
             _dbContext = dbContext;
         }
-
-        public void Login(string login)
+        // 7
+        public async Task<string> Login(string login)
         {
-            var userToInsertToken = _dbContext.Users.FirstOrDefault(u => u.Login == login);
+            var userToInsertToken = await _dbContext.Users.FirstOrDefaultAsync(u => u.Login == login);
 
             if (userToInsertToken == null)
             {
-                return;
+                return null;
             }
 
             string token = Generate(userToInsertToken);
 
             if(token == null)
             {
-                return;
+                return null;
             }
 
             userToInsertToken.LastToken = token;
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
+
+            return token;
         }
         public string Generate(User user)
         {

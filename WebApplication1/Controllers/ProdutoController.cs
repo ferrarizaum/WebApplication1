@@ -17,14 +17,14 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var produtos = _produtoService.GetProdutos();
+            var produtos = await _produtoService.GetProdutos();
             return Ok(produtos);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] Produto produto)
+        public async Task<IActionResult> Post([FromBody] Produto produto)
         {
-            var newProduto = _produtoService.PostProduto(produto);
+            var newProduto = await _produtoService.PostProduto(produto);
             return Ok(newProduto);
         }
 
@@ -43,9 +43,9 @@ namespace WebApplication1.Controllers
 
         [HttpGet]
         [Route("ListByProdutoUrl")]
-        public IActionResult ListByProdutoUrl(string produtoUrl)
+        public async Task<IActionResult> ListByProdutoUrl(string produtoUrl)
         {
-            var query = _produtoService.ListByProdutoUrl(produtoUrl);
+            var query = await _produtoService.ListByProdutoUrl(produtoUrl);
             return Ok(query);
         }
     }
