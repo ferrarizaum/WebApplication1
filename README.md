@@ -1,4 +1,4 @@
-PROJETO TESTE
+PROJETO ECOMMERCE API
 
 Instruções para execução:
 
