@@ -25,5 +25,3 @@ Para testar a rota protegida, é necessário adicionar um token de autenticaçã
 Funcionalidade da API:
 O projeto oferece funcionalidades de CRUD para todas as entidades.
 Além disso, existem rotas específicas que implementam lógicas de negócios detalhadas.
-
-## O Número das atividades está no código em forma de comentários
